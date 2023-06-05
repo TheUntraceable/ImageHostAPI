@@ -4,7 +4,7 @@ services:
     image: mongodb/mongodb-community-server:6.0-ubi8
     environment:
       - MONGO_INITDB_ROOT_USERNAME=TheUntraceable
-      - MONGO_INITDB_ROOT_PASSWORD=]9!e58DjNzNN%?8c^BxAE4*@p`X}><t@wpm,D/ZR]seY,/xQK@*pXVEw}J2r+},PS;}tGCt4Wd2FY7_/
+      - MONGO_INITDB_ROOT_PASSWORD=z0-:#BqSm00Y*B!l
     volumes:
       - type: bind
         source: ./data
