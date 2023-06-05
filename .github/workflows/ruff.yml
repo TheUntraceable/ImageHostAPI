@@ -13,4 +13,4 @@ jobs:
       - name: Install dependencies
         run: pip install ruff
       - name: Run RUFF
-        run: ruff
+        run: ruff check .
