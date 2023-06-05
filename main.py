@@ -6,7 +6,7 @@ from aiohttp import web
 from argon2 import PasswordHasher
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from .utils import (
+from utils import (
     ADMIN_USER_DISPLAY_FORMAT,
     configure_logger,
     User,
