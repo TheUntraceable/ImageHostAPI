@@ -2,7 +2,7 @@ name: RUFF
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   ruff:
