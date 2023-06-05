@@ -1,0 +1,4 @@
+{
+    "mongo_url": "The URL to connect to a mongo DB",
+    "port": 2340 // The port to run the application
+}
