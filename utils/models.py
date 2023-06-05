@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from uuid import uuid4
 
+from argon2 import PasswordHasher
+
 
 @dataclass
 class User:
@@ -8,22 +10,33 @@ class User:
     username: str
     _username: str  # Lower
     email: str
+    _email: str  # Lower
     password: str
     images: list[str]  # List of IDs
+    quota: int = 1000  # MB
     admin: bool
 
     @classmethod
     async def create(
-        cls, username: str, email: str, password: str, auth_db, admin=False
+        cls,
+        username: str,
+        email: str,
+        password: str,
+        auth_db,
+        admin=False,
+        quota=1000,
+        password_hasher: PasswordHasher = PasswordHasher,
     ):
         payload = {
             "username": username,
             "_username": username.lower(),
             "email": email,
-            "password": password,
+            "_email": email.lower(),
+            "password": password_hasher.hash(password),
             "images": [],
             "id": uuid4().hex,
             "admin": admin,
+            "quota": quota,  # MB
         }
         await auth_db.insert_one(payload)
         return cls(**payload)
@@ -42,12 +55,20 @@ class User:
         self.images.remove(image_id)
         await self.update(auth_db)
 
+    def dict(self):
+        return {
+            "username": self.username,
+            "email": self.email,
+            "images": self.images,
+            "id": self.id,
+            "quota": self.quota,
+        }
+
 
 @dataclass
 class Image:
     id: str
     name: str
-    description: str
     url: str
     owner_id: str  # User
     contents: bytes
@@ -56,7 +77,6 @@ class Image:
     async def create(
         cls,
         name: str,
-        description: str,
         url: str,
         owner_id: str,
         contents: bytes,
@@ -64,7 +84,6 @@ class Image:
     ):
         payload = {
             "name": name,
-            "description": description,
             "url": url,
             "owner_id": owner_id,
             "contents": contents,
@@ -78,6 +97,15 @@ class Image:
 
     async def update(self, image_db):
         await image_db.update_one({"id": self.id}, {"$set": self.dict()})
+
+    def dict(self):
+        return {
+            "name": self.name,
+            "url": self.url,
+            "owner_id": self.owner_id,
+            "contents": self.contents,
+            "id": self.id,
+        }
 
 
 __all__ = ["User", "Image"]
