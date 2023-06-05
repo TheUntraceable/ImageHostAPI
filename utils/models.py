@@ -13,8 +13,8 @@ class User:
     _email: str  # Lower
     password: str
     images: list[str]  # List of IDs
-    quota: int = 1000  # MB
     admin: bool
+    quota: int = 1000  # MB
 
     @classmethod
     async def create(
