@@ -18,7 +18,9 @@ with open("config.json", "r") as f:
     config = load(f)
 
 password_hasher = PasswordHasher()
+
 logger = getLogger(__name__)
+
 client = AsyncIOMotorClient(config["mongo_url"])
 db = client["main_application"]
 auth_db = db["auth"]
