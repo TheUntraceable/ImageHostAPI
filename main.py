@@ -12,6 +12,7 @@ from utils import (
     User,
     Image,
     BASE_HTML_TEMPLATE,
+    logging_middleware,
 )
 
 with open("config.json", "r") as f:
@@ -363,6 +364,7 @@ async def delete_image(request: web.Request) -> web.Response:
 
 
 app.add_routes(routes)
+app.middlewares.append(logging_middleware)
 
 if __name__ == "__main__":
     web.run_app(app, port=config["port"])

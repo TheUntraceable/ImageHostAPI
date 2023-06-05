@@ -35,9 +35,9 @@ Password: {password}
 
 @web.middleware
 async def logging_middleware(
-    request: web.Request, main_handler: web.RequestHandler
+    request: web.Request, handler: web.RequestHandler
 ) -> web.Response:
-    response = await main_handler(request)
+    response = await handler(request)
     request.app.logger.debug(f"%t {request.method} {request.path} {response.status}")
     return response
 
