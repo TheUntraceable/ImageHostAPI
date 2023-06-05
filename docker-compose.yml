@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongodb/mongodb-community-server:6.0-ubi8
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=TheUntraceable
+      - MONGO_INITDB_ROOT_PASSWORD=]9!e58DjNzNN%?8c^BxAE4*@p`X}><t@wpm,D/ZR]seY,/xQK@*pXVEw}J2r+},PS;}tGCt4Wd2FY7_/
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data/db
+    ports:
+      - 27017:27017
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: always
+    ports:
+      - 2340:2340
+    depends_on:
+      - mongodb
