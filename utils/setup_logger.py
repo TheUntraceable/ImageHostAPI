@@ -10,9 +10,7 @@ handler = FileHandler(filename=f"./logs/{time()}", encoding="utf-8", mode="w")
 
 def configure_logger(logger: Logger):
     logger.setLevel(-100)
-    handler.setFormatter(
-        formatter
-    )
+    handler.setFormatter(formatter)
     logger.addHandler(handler)
 
 
