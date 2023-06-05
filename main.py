@@ -20,19 +20,18 @@ with open("config.json", "r") as f:
 
 password_hasher = PasswordHasher()
 
-logger = getLogger(__name__)
-
 client = AsyncIOMotorClient(config["mongo_url"])
 db = client["main_application"]
 auth_db = db["auth"]
 image_db = db["images"]
 sessions = db["sessions"]
 
-app = web.Application(logger=logger)
+app = web.Application(client_max_size=51_000_000)
 
 routes = web.RouteTableDef()
 
-configure_logger(logger)
+configure_logger(getLogger("aiohttp.server"))
+configure_logger(getLogger("aiohttp.access"))
 
 
 async def create_admin_user():

@@ -1,5 +1,3 @@
-from aiohttp import web
-
 from .setup_logger import configure_logger
 from .models import User, Image
 
@@ -32,21 +30,10 @@ Email: {user.email}
 Password: {password}
 """
 
-
-@web.middleware
-async def logging_middleware(
-    request: web.Request, handler: web.RequestHandler
-) -> web.Response:
-    response = await handler(request)
-    request.app.logger.debug(f"%t {request.method} {request.path} {response.status}")
-    return response
-
-
 __all__ = [
     "configure_logger",
     "User",
     "Image",
     "BASE_HTML_TEMPLATE",
     "ADMIN_USER_DISPLAY_FORMAT",
-    "logging_middleware",
 ]
