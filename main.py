@@ -126,6 +126,7 @@ async def get_accounts(request: web.Request) -> web.Response:
 
     return web.json_response({"error": False, "users": users})
 
+
 @routes.patch("/auth/account")
 async def update_account(request: web.Request) -> web.Response:
     token = request.headers.get("Authorization")
@@ -299,7 +300,7 @@ async def upload_image(request: web.Request) -> web.Response:
             {"error": True, "message": "File too large."}, status=413
         )
 
-    if len(file_data) > 50_000_000: # 50MB
+    if len(file_data) > 50_000_000:  # 50MB
         return web.json_response(
             {"error": True, "message": "File too large. Max is 50MB."}, status=413
         )
