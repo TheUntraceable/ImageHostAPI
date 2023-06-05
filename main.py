@@ -98,6 +98,32 @@ async def login(request: web.Request) -> web.Response:
     )
 
 
+@routes.get("/auth/accounts")
+async def get_accounts(request: web.Request) -> web.Response:
+    token = request.headers.get("Authorization")
+    if not token:
+        return web.json_response(
+            {"error": True, "message": "No token provided."}, status=401
+        )
+
+    session = await sessions.find_one({"token": token})
+
+    if not session:
+        return web.json_response(
+            {"error": True, "message": "Invalid token."}, status=403
+        )
+
+    user = await auth_db.find_one({"id": session["user_id"]})
+
+    if not user["admin"]:
+        return web.json_response(
+            {"error": True, "message": "You are not an admin."}, status=403
+        )
+
+    users = [user async for user in auth_db.find({})]
+
+    return web.json_response({"error": False, "users": users})
+
 @routes.patch("/auth/account")
 async def update_account(request: web.Request) -> web.Response:
     token = request.headers.get("Authorization")
