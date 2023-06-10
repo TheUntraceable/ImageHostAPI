@@ -30,10 +30,30 @@ Email: {user.email}
 Password: {password}
 """
 
+BASE_SHAREX_CONFIG = """
+{
+  "Version": "14.0.0",
+  "DestinationType": "ImageUploader",
+  "RequestMethod": "POST",
+  "RequestURL": "https://api.image-cloud.xyz/images/upload",
+  "Headers": {
+    "Authorization": {token}
+  },
+  "Body": "MultipartFormData",
+  "FileFormName": "file",
+  "URL": "{json:url}",
+  "ThumbnailURL": "{json:url}",
+  "DeletionURL": "{json:deletion_url}",
+  "ErrorMessage": "{json:error_message}"
+}
+
+"""
+
 __all__ = [
     "configure_logger",
     "User",
     "Image",
     "BASE_HTML_TEMPLATE",
     "ADMIN_USER_DISPLAY_FORMAT",
+    "BASE_SHAREX_CONFIG",
 ]

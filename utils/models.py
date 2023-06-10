@@ -77,17 +77,17 @@ class Image:
     async def create(
         cls,
         name: str,
-        url: str,
         owner_id: str,
         contents: bytes,
         image_db,
     ):
+        image_id = uuid4().hex
         payload = {
             "name": name,
-            "url": url,
+            "url": f"https://api.image-cloud.xyz/images/{image_id}",
             "owner_id": owner_id,
             "contents": contents,
-            "id": uuid4().hex,
+            "id": image_id,
         }
         await image_db.insert_one(payload)
         return cls(**payload)

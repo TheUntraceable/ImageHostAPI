@@ -12,7 +12,7 @@ from utils import (
     User,
     Image,
     BASE_HTML_TEMPLATE,
-    logging_middleware,
+    BASE_SHAREX_CONFIG
 )
 
 with open("config.json", "r") as f:
@@ -64,9 +64,11 @@ async def signup(request: web.Request) -> web.Response:
     email = data["email"]
     password = data["password"]
     if await auth_db.find_one({"_username": username.lower()}):
-        return web.json_response({"error": True, "message": "Username taken."})
+        return web.json_response({"error": True, "error_message": "Username taken."})
     if await auth_db.find_one({"_email": email.lower()}):
-        return web.json_response({"error": True, "message": "Email already in use."})
+        return web.json_response(
+            {"error": True, "error_message": "Email already in use."}
+        )
 
     await User.create(
         username, email, password, auth_db, password_hasher=password_hasher
@@ -86,11 +88,11 @@ async def login(request: web.Request) -> web.Response:
     )
 
     if not user:
-        return web.json_response({"error": True, "message": "User not found."})
+        return web.json_response({"error": True, "error_message": "User not found."})
 
     if not password_hasher.verify(user["password"], password):
         return web.json_response(
-            {"error": True, "message": "Invalid Username/Password."}
+            {"error": True, "error_message": "Invalid Username/Password."}
         )
 
     session = await sessions.insert_one({"user_id": user["id"], "token": uuid4().hex})
@@ -105,21 +107,21 @@ async def get_accounts(request: web.Request) -> web.Response:
     token = request.headers.get("Authorization")
     if not token:
         return web.json_response(
-            {"error": True, "message": "No token provided."}, status=401
+            {"error": True, "error_message": "No token provided."}, status=401
         )
 
     session = await sessions.find_one({"token": token})
 
     if not session:
         return web.json_response(
-            {"error": True, "message": "Invalid token."}, status=403
+            {"error": True, "error_message": "Invalid token."}, status=403
         )
 
     user = await auth_db.find_one({"id": session["user_id"]})
 
     if not user["admin"]:
         return web.json_response(
-            {"error": True, "message": "You are not an admin."}, status=403
+            {"error": True, "error_message": "You are not an admin."}, status=403
         )
 
     users = [user async for user in auth_db.find({})]
@@ -132,14 +134,14 @@ async def update_account(request: web.Request) -> web.Response:
     token = request.headers.get("Authorization")
     if not token:
         return web.json_response(
-            {"error": True, "message": "No token provided."}, status=401
+            {"error": True, "error_message": "No token provided."}, status=401
         )
 
     session = await sessions.find_one({"token": token})
 
     if not session:
         return web.json_response(
-            {"error": True, "message": "Invalid token."}, status=403
+            {"error": True, "error_message": "Invalid token."}, status=403
         )
 
     user = await auth_db.find_one({"id": session["user_id"]})
@@ -149,14 +151,14 @@ async def update_account(request: web.Request) -> web.Response:
     if "username" in data:
         if await auth_db.find_one({"_username": data["username"].lower()}):
             return web.json_response(
-                {"error": True, "message": "Username taken."}, status=400
+                {"error": True, "error_message": "Username taken."}, status=400
             )
         user["username"] = data["username"]
 
     if "email" in data:
         if await auth_db.find_one({"_email": data["email"].lower()}):
             return web.json_response(
-                {"error": True, "message": "Email already in use."}, status=400
+                {"error": True, "error_message": "Email already in use."}, status=400
             )
         user["email"] = data["email"]
 
@@ -178,14 +180,14 @@ async def delete_account(request: web.Request) -> web.Response:
     token = request.headers.get("Authorization")
     if not token:
         return web.json_response(
-            {"error": True, "message": "No token provided."}, status=401
+            {"error": True, "error_message": "No token provided."}, status=401
         )
 
     session = await sessions.find_one({"token": token})
 
     if not session:
         return web.json_response(
-            {"error": True, "message": "Invalid token."}, status=403
+            {"error": True, "error_message": "Invalid token."}, status=403
         )
 
     user = await auth_db.find_one({"id": session["user_id"]})
@@ -200,21 +202,21 @@ async def delete_account_as_admin(request: web.Request) -> web.Response:
     token = request.headers.get("Authorization")
     if not token:
         return web.json_response(
-            {"error": True, "message": "No token provided."}, status=401
+            {"error": True, "error_message": "No token provided."}, status=401
         )
 
     session = await sessions.find_one({"token": token})
 
     if not session:
         return web.json_response(
-            {"error": True, "message": "Invalid token."}, status=403
+            {"error": True, "error_message": "Invalid token."}, status=403
         )
 
     user = await auth_db.find_one({"id": session["user_id"]})
 
     if not user["admin"]:
         return web.json_response(
-            {"error": True, "message": "You are not an admin."}, status=403
+            {"error": True, "error_message": "You are not an admin."}, status=403
         )
 
     data = await request.post()
@@ -225,7 +227,8 @@ async def delete_account_as_admin(request: web.Request) -> web.Response:
         user = await auth_db.find_one({"_email": data["email"].lower()})
     else:
         return web.json_response(
-            {"error": True, "message": "No username or email provided."}, status=400
+            {"error": True, "error_message": "No username or email provided."},
+            status=400,
         )
 
     await auth_db.delete_one(user)
@@ -238,14 +241,14 @@ async def logout(request: web.Request) -> web.Response:
     token = request.headers.get("Authorization")
     if not token:
         return web.json_response(
-            {"error": True, "message": "No token provided."}, status=401
+            {"error": True, "error_message": "No token provided."}, status=401
         )
 
     session = await sessions.find_one({"token": token})
 
     if not session:
         return web.json_response(
-            {"error": True, "message": "Invalid token."}, status=403
+            {"error": True, "error_message": "Invalid token."}, status=403
         )
 
     await sessions.delete_one(session)
@@ -258,35 +261,41 @@ async def upload_image(request: web.Request) -> web.Response:
     token = request.headers.get("Authorization")
     if not token:
         return web.json_response(
-            {"error": True, "message": "No token provided."}, status=401
+            {"error": True, "error_message": "No token provided."}, status=401
         )
 
     session = await sessions.find_one({"token": token})
 
     if not session:
         return web.json_response(
-            {"error": True, "message": "Invalid token."}, status=403
+            {"error": True, "error_message": "Invalid token."}, status=403
         )
 
     user = await auth_db.find_one({"id": session["user_id"]})
 
     data = await request.multipart()
     file_field = await data.next()
+
+    if not file_field:
+        return web.json_response(
+            {"error": True, "error_message": "No file provided."}, status=400
+        )
+
     filename = file_field.filename
 
-    if not filename or not file_field:
+    if not filename:
         return web.json_response(
-            {"error": True, "message": "No file provided."}, status=400
+            {"error": True, "error_message": "No filename provided."}, status=400
         )
 
     if not filename.endswith((".png", ".jpg", ".jpeg", ".gif")):
         return web.json_response(
-            {"error": True, "message": "Invalid file extension."}, status=400
+            {"error": True, "error_message": "Invalid file extension."}, status=400
         )
 
     if not file_field.content_type.startswith("image/"):
         return web.json_response(
-            {"error": True, "message": "Invalid file type."}, status=400
+            {"error": True, "error_message": "Invalid file type."}, status=400
         )
 
     file_data = await file_field.read()
@@ -297,20 +306,23 @@ async def upload_image(request: web.Request) -> web.Response:
 
     if used_quota > user["quota"] and user["quota"] != -1:
         return web.json_response(
-            {"error": True, "message": "File too large."}, status=413
+            {"error": True, "error_message": "File too large."}, status=413
         )
 
     if len(file_data) > 50_000_000:  # 50MB
         return web.json_response(
-            {"error": True, "message": "File too large. Max is 50MB."}, status=413
+            {"error": True, "error_message": "File too large. Max is 50MB."}, status=413
         )
 
-    image = await Image.create(
-        filename, uuid4().hex, session["user_id"], file_data, image_db
-    )
+    image = await Image.create(filename, session["user_id"], file_data, image_db)
 
     return web.json_response(
-        {"error": False, "message": "Image uploaded.", "image": image.dict()}
+        {
+            "error": False,
+            "message": "Image uploaded.",
+            "image": image.dict(),
+            "url": f"https://api.image-cloud.xyz/images/{image.id}",
+        }
     )
 
 
@@ -321,7 +333,7 @@ async def get_image(request: web.Request) -> web.Response:
 
     if not image:
         return web.json_response(
-            {"error": True, "message": "Image not found."}, status=404
+            {"error": True, "error_message": "Image not found."}, status=404
         )
 
     return web.Response(text=BASE_HTML_TEMPLATE.format(image))
@@ -332,14 +344,14 @@ async def delete_image(request: web.Request) -> web.Response:
     token = request.headers.get("Authorization")
     if not token:
         return web.json_response(
-            {"error": True, "message": "No token provided."}, status=401
+            {"error": True, "error_message": "No token provided."}, status=401
         )
 
     session = await sessions.find_one({"token": token})
 
     if not session:
         return web.json_response(
-            {"error": True, "message": "Invalid token."}, status=403
+            {"error": True, "error_message": "Invalid token."}, status=403
         )
 
     user = await auth_db.find_one({"id": session["user_id"]})
@@ -349,12 +361,13 @@ async def delete_image(request: web.Request) -> web.Response:
 
     if not image:
         return web.json_response(
-            {"error": True, "message": "Image not found."}, status=404
+            {"error": True, "error_message": "Image not found."}, status=404
         )
 
     if image["user_id"] != session["user_id"] and not user["admin"]:
         return web.json_response(
-            {"error": True, "message": "You cannot delete this image."}, status=403
+            {"error": True, "error_message": "You cannot delete this image."},
+            status=403,
         )
 
     await image_db.delete_one(image)
@@ -362,8 +375,24 @@ async def delete_image(request: web.Request) -> web.Response:
     return web.json_response({"error": False, "message": "Image deleted."})
 
 
+@routes.get("/sharex/config")
+async def get_sharex_config(request: web.Request) -> web.Response:
+    token = request.headers.get("Authorization")
+    if not token:
+        return web.json_response({"error": True, "error_message": "No token provided"})
+
+    session = await sessions.find_one({"token": token})
+
+    if not session:
+        return web.json_response({"error": True, "error_message": "Invalid token."})
+
+    config = BASE_SHAREX_CONFIG.format(
+        token=token
+    )
+
+    return web.Response(text=config, content_type="application/octet-stream")
+
 app.add_routes(routes)
-app.middlewares.append(logging_middleware)
 
 if __name__ == "__main__":
     web.run_app(app, port=config["port"])
